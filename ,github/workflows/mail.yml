@@ -1,0 +1,38 @@
+name: Build Mac App
+on: [workflow_dispatch]
+
+jobs:
+  build:
+    runs-on: macos-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+
+      - name: Install Nativefier
+        run: npm install -g nativefier
+
+      - name: Package App for Mac
+        run: |
+          nativefier --name "GmailCalendar" \
+          --platform "mac" \
+          --arch "universal" \
+          --background-color "#ffffff" \
+          --internal-urls ".*" \
+          --file-download-options '{"saveAs": true}' \
+          ./index.html ./build-output/
+
+      - name: Compress App
+        run: |
+          cd build-output/GmailCalendar-darwin-universal/
+          zip -r ../../GmailCalendar-Mac.zip GmailCalendar.app
+
+      - name: Upload Finished App
+        uses: actions/upload-artifact@v4
+        with:
+          name: Mac-App-Download
+          path: GmailCalendar-Mac.zip
